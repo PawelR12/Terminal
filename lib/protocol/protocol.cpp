@@ -61,15 +61,10 @@ void Protocol :: voting_receive(){
     uint32_t msg_before_encryption;
     msg_before_encryption = (whole_data[0] << 16) + (whole_data[1] << 8) + whole_data[2];
     if(msg_before_encryption != 0){
-        Serial.print("Before encrypt: "); Serial.println(whole_data[1]);
+        Serial.print("Data before encryption: "); Serial.print(whole_data[0]); Serial.print(whole_data[1]); Serial.println(whole_data[2]);
         data_decryption(whole_data);
-        Serial.print("After encrypt: "); Serial.println(whole_data[1]);
+        Serial.print("Data after encryption: "); Serial.print(whole_data[0]); Serial.print(whole_data[1]); Serial.println(whole_data[2]);
         whole_message = (whole_data[0] << 16) + (whole_data[1] << 8) + whole_data[2];
-        if(whole_message != 0){
-            Serial.print("Message: "); Serial.println(msg);
-            Serial.print("Whole data: ");
-            Serial.print(whole_data[0]); Serial.print(whole_data[1]); Serial.println(whole_data[2]);
-        } 
         data_validate(whole_message);
     } else{
         validate = false;
@@ -85,16 +80,16 @@ void Protocol :: data_validate(uint32_t data){
     uint8_t received_check_sum = whole_data[2];
     // ADDITIONAL CHECKING IN CASE
     if(data != 0){
-        Serial.print("Data: ");
-        Serial.print(data);
-        Serial.print("  Sender address: ");
+        Serial.print("Sender address: ");
         Serial.print(sender_address);
         Serial.print("  Receiver address: ");
-        Serial.print(receiver_address);
+        Serial.println(received_address);
+        Serial.print("Message destination: ");
+        Serial.print(get_msb(received_message));
         Serial.print("  Msg: ");
-        Serial.print(received_message);
-        Serial.print("  check sum: ");
-        Serial.print(received_check_sum);
+        Serial.println(get_lsb(received_message));
+        // Serial.print("  check sum: ");
+        // Serial.println(received_check_sum);
         // Serial.print("Validate before address check: ");
         // Serial.println(validate);
     }
@@ -111,17 +106,17 @@ void Protocol :: data_validate(uint32_t data){
         validate = false;
     }
     if(data != 0){
-    Serial.print("calculated check sum: ");
+    Serial.print("Calculated check sum: ");
     Serial.println(cs);
     Serial.print("Received check sum: ");
     Serial.println(received_check_sum);
     
-    Serial.print("Address receveid: ");
-    Serial.println(receiver_address);
+    // Serial.print("Address receveid: ");
+    // Serial.println(receiver_address);
     Serial.print("Own address: ");
     Serial.println(own_address);
-    Serial.print("Validate: ");
-    Serial.println(validate);
+    // Serial.print("Validate: ");
+    // Serial.println(validate);
     
     }
     // if check sum is correct
@@ -147,14 +142,6 @@ void Protocol :: data_validate(uint32_t data){
 
 void Protocol :: msg_execution(){
     Serial.println("Open msg_execution");
-    Serial.print("Voting: ");
-    Serial.println(voting);
-    Serial.print("Msg type: ");
-    Serial.println(msg_type);
-    Serial.print("Msg lsb: ");
-    Serial.println(msg);
-    Serial.print("Votinng: ");
-    Serial.println(voting);
     if(voting == voting_is_close && msg_type == voting_open){
         encryption = msg;
         voting_open_func();
@@ -165,7 +152,7 @@ void Protocol :: msg_execution(){
         ack_voting_open_func();
     }
     else if(voting == voting_is_open){
-        Serial.print("Msg type: "); Serial.println(msg_type);
+        // Serial.print("Msg type: "); Serial.println(msg_type);
         
         switch(msg_type){    
             case can_send_voices:
@@ -254,8 +241,13 @@ void Protocol :: vote_send_func(uint8_t last_vote){
     if(msg == vote_yes || msg == vote_no || msg == vote_no_decision){
         if(address > 0 && address <= number_of_devices){
             voting_results[address] = last_vote;
+            Serial.print("Vote result: ");
         }
-        Serial.println(last_vote);
+        
+        if(msg == vote_yes) Serial.println("yes");
+        if(msg == vote_no) Serial.println("no");
+        if(msg == vote_no_decision) Serial.println("no decision");
+
         // voting = during_voting;
         // send ack msg
         uint8_t voting_msg = (ack_vote_send << 4);

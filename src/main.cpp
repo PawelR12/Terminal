@@ -33,11 +33,11 @@ void setup() {
   Serial.begin(9600);
   // LoRa.setPins(ss, rst, dio0);
   while (!LoRa.begin(866E6)){
-    Serial.println("Lora Communication Fail");
+    Serial.println("Communication Fail");
     delay(300);
   }
   LoRa.setSyncWord(0xA7);
-  Serial.println("Terminal connected with LoRa");
+  Serial.println("Terminal connected with RFM95W");
   digitalWrite(YELLOW_LED, LOW);
   digitalWrite(GREEN_LED, HIGH);
   // LoRa.setSyncWord(0xA7); // We can only receive and send messages to the devices
